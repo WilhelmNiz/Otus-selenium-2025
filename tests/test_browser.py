@@ -1,8 +1,4 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from page_object.main_page import MainPage
-
 from page_object.catalog_page import CatalogPage
 from page_object.admin_page import AdminPage
 from page_object.auth_page import AuthPage
@@ -37,7 +33,7 @@ def test_opencart_check_admin(browser):
     """Тест проверки элементов страницы администрирования"""
     ap = AdminPage()
 
-    browser.open(ap.admin_page)
+    browser.open(ap.ADMIN_PAGE)
     ap.check_elements_admin_page(browser)
 
 
@@ -54,7 +50,7 @@ def test_admin_login_logout(browser):
 
     ap = AdminPage()
 
-    browser.open(ap.admin_page)
+    browser.open(ap.ADMIN_PAGE)
     ap.authorization_admin(browser)
     ap.logout(browser)
 
@@ -97,7 +93,7 @@ def test_opencart_add_user(browser):
     """Тест регистрации нового пользователя в магазине opencart"""
     ap = AdminPage()
 
-    browser.open(ap.admin_page)
+    browser.open(ap.ADMIN_PAGE)
     ap.authorization_admin(browser)
     value, email = ap.add_customers(browser)
     ap.verifying_user_data(browser, firstname=value, lastname=value, email=email)
@@ -107,7 +103,7 @@ def test_opencart_add_and_delete_product(browser):
     """Тест по добавлению и удалению нового товара в разделе администратора"""
     ap = AdminPage()
 
-    browser.open(ap.admin_page)
+    browser.open(ap.ADMIN_PAGE)
     ap.authorization_admin(browser)
     value = ap.add_product(browser)
     ap.verifying_product_data(browser, value=value)

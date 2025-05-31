@@ -10,11 +10,11 @@ from page_object.header_elements import HeaderElements
 
 class MainPage(BasePage):
     """Главная страница OpenCart"""
-    carousel_banner = "#carousel-banner-0"
-    all_product_name = ".product-thumb"
-    title_product_name = "h4 a"
-    button_add_to_cart = "button[formaction*='cart.add']"
-    first_product = ".product-thumb:first-child"
+    CAROUSEL_BANNER = "#carousel-banner-0"
+    ALL_PRODUCT_NAME = ".product-thumb"
+    TITLE_PRODUCT_NAME = "h4 a"
+    BUTTON_ADD_TO_CART = "button[formaction*='cart.add']"
+    FIRST_PRODUCT = ".product-thumb:first-child"
 
     def __init__(self):
         super().__init__()
@@ -28,7 +28,7 @@ class MainPage(BasePage):
         with allure.step("1. Получить список всех товаров на странице"):
             self.logger.info("Получение списка всех товаров")
             all_products = WebDriverWait(browser, 10).until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.all_product_name)))
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.ALL_PRODUCT_NAME)))
 
             self.logger.info(f"Найдено товаров: {len(all_products)}")
             allure.attach(
@@ -39,7 +39,7 @@ class MainPage(BasePage):
 
             with allure.step("2. Выбрать случайный товар"):
                 random_product = random.choice(all_products)
-                product_name = random_product.find_element(By.CSS_SELECTOR, self.title_product_name).text
+                product_name = random_product.find_element(By.CSS_SELECTOR, self.TITLE_PRODUCT_NAME).text
                 self.logger.info(f"Выбран товар: {product_name}")
                 allure.attach(
                     product_name,
@@ -49,15 +49,15 @@ class MainPage(BasePage):
 
             with allure.step("3. Нажать кнопку 'Добавить в корзину'"):
                 self.logger.info("Нажатие кнопки 'Добавить в корзину'")
-                self.wait_and_click(browser=browser, target_locator=self.button_add_to_cart, method=By.CSS_SELECTOR)
+                self.wait_and_click(browser=browser, target_locator=self.BUTTON_ADD_TO_CART, method=By.CSS_SELECTOR)
 
             with allure.step("4. Проверить уведомление об успешном добавлении"):
                 self.logger.info("Проверка уведомления об успешном добавлении")
-                self.wait_element(browser, target_locator=self.header.alert_success)
+                self.wait_element(browser, target_locator=self.header.ALERT_SUCCESS)
 
             with allure.step("5. Перейти в корзину"):
                 self.logger.info("Переход в корзину")
-                self.wait_and_click(browser=browser, target_locator=self.header.cart, method=By.CSS_SELECTOR)
+                self.wait_and_click(browser=browser, target_locator=self.header.CART, method=By.CSS_SELECTOR)
 
         self.logger.info(f"Товар '{product_name}' успешно добавлен в корзину")
         return product_name
@@ -69,7 +69,7 @@ class MainPage(BasePage):
 
         with allure.step(f"1. Проверить что корзина не пуста (ожидаемый товар: '{product_name}')"):
             self.logger.info("Проверка что корзина не пуста")
-            items_in_cart = browser.find_elements(By.CSS_SELECTOR, self.header.cart_items_list)
+            items_in_cart = browser.find_elements(By.CSS_SELECTOR, self.header.CART_ITEMS_LIST)
 
             self.logger.info(f"Количество товаров в корзине: {len(items_in_cart)}")
             allure.attach(
@@ -105,22 +105,22 @@ class MainPage(BasePage):
 
         with allure.step("Проверить наличие логотипа"):
             self.logger.info("Проверка логотипа")
-            self.wait_element(browser, target_locator=self.header.logo)
+            self.wait_element(browser, target_locator=self.header.LOGO)
 
         with allure.step("Проверить поле поиска"):
             self.logger.info("Проверка поля поиска")
-            self.wait_element(browser, target_locator=self.header.search_input, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.header.SEARCH_INPUT, method=By.CSS_SELECTOR)
 
         with allure.step("Проверить корзину"):
             self.logger.info("Проверка корзины")
-            self.wait_element(browser, target_locator=self.header.cart, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.header.CART, method=By.CSS_SELECTOR)
 
         with allure.step("Проверить карусель баннеров"):
             self.logger.info("Проверка карусели баннеров")
-            self.wait_element(browser, target_locator=self.carousel_banner, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.CAROUSEL_BANNER, method=By.CSS_SELECTOR)
 
         with allure.step("Проверить навигационное меню"):
             self.logger.info("Проверка навигационного меню")
-            self.wait_element(browser, target_locator=self.header.narbar_menu)
+            self.wait_element(browser, target_locator=self.header.NARBAR_MENU)
 
         self.logger.info("Все элементы на главной странице присутствуют")

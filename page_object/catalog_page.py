@@ -11,13 +11,13 @@ class CatalogPage(MainPage):
     """Страница каталога товаров"""
 
     # Путь до цен товаров
-    price = "div.price"
+    PRICE = "div.price"
 
     # Путь до списка товаров
-    product_list = "#product-list"
+    PRODUCT_LIST = "#product-list"
 
     # Путь до наименований товаров
-    product_name = ".product-thumb h4 a"
+    PRODUCT_NAME = ".product-thumb h4 a"
 
     @allure.step("Выбрать случайный пункт меню и нажать 'Показать все'")
     def select_random_menu_item_and_show_all(self, browser):
@@ -29,8 +29,7 @@ class CatalogPage(MainPage):
         with allure.step("1. Получить все пункты выпадающего меню"):
             self.logger.info("Получение пунктов выпадающего меню")
             menu_items = WebDriverWait(browser, 10).until(
-                EC.presence_of_all_elements_located((By.XPATH, self.header.narbar_menu_dropdown))
-            )
+                EC.presence_of_all_elements_located((By.XPATH, self.header.NARBAR_MENU_DROPDOWN)))
             self.logger.info(f"Найдено пунктов меню: {len(menu_items)}")
             allure.attach(
                 str([item.text for item in menu_items]),
@@ -54,7 +53,7 @@ class CatalogPage(MainPage):
 
         with allure.step("4. Нажать 'Показать все' в выбранной категории"):
             self.logger.info("Нажатие 'Показать все' в выбранной категории")
-            self.wait_and_click(browser=browser, target_locator=self.header.product_show_all)
+            self.wait_and_click(browser=browser, target_locator=self.header.PRODUCT_SHOW_ALL)
 
         self.logger.info("Случайный пункт меню успешно выбран")
 
@@ -67,7 +66,7 @@ class CatalogPage(MainPage):
 
         with allure.step(f"1. Получить первые {count} цен товаров"):
             product_prices = WebDriverWait(browser, 10).until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.price)))
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.PRICE)))
 
             prices_list = [price.text for price in product_prices[:count]]
             self.logger.info(f"Получены цены: {prices_list}")
@@ -99,22 +98,22 @@ class CatalogPage(MainPage):
 
         with allure.step("1. Проверить наличие списка товаров"):
             self.logger.info("Проверка списка товаров")
-            self.wait_element(browser, target_locator=self.product_list, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.PRODUCT_LIST, method=By.CSS_SELECTOR)
 
         with allure.step("2. Проверить кнопку поиска"):
             self.logger.info("Проверка кнопки поиска")
-            self.wait_element(browser, target_locator=self.header.search_button, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.header.SEARCH_BUTTON, method=By.CSS_SELECTOR)
 
         with allure.step("3. Проверить поле ввода поиска"):
             self.logger.info("Проверка поля ввода поиска")
-            self.wait_element(browser, target_locator=self.header.search_input, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.header.SEARCH_INPUT, method=By.CSS_SELECTOR)
 
         with allure.step("4. Проверить наличие логотипа"):
             self.logger.info("Проверка логотипа")
-            self.wait_element(browser, target_locator=self.header.logo)
+            self.wait_element(browser, target_locator=self.header.LOGO)
 
         with allure.step("5. Проверить названия товаров"):
             self.logger.info("Проверка названий товаров")
-            self.wait_element(browser, target_locator=self.product_name, method=By.CSS_SELECTOR)
+            self.wait_element(browser, target_locator=self.PRODUCT_NAME, method=By.CSS_SELECTOR)
 
         self.logger.info("Все элементы на странице каталога присутствуют")

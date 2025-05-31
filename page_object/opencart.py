@@ -26,7 +26,6 @@ class OpencartElements(OpencartNavigation):
         self.cart = "#header-cart > div > button"
         self.list_of_products_in_cart = "#header-cart > div > ul > li > table > tbody > tr"
         self.content = "#content"
-        self.alert_success = "div.alert-success"
         self.price = "div.price"
         self.dropdown_currency = "#form-currency > div > a > span"
         self.list_currency = "#form-currency > div > ul > li"
@@ -46,14 +45,6 @@ class OpencartElements(OpencartNavigation):
         # Страница товара
         self.product_title = "h1"
         self.add_to_cart_btn = "#button-cart"
-
-        # Админка
-        self.admin_login_card = ".card"
-        self.input_password = "#input-password"
-        self.input_username = "#input-username"
-        self.button_login = "#form-login > div.text-end > button"
-        self.card_header = "#content > div > div > div > div > div.card-header"
-        self.button_logout = "#nav-logout > a"
 
         # Регистрация
         self.register_form = "#form-register"

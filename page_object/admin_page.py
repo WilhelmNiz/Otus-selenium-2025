@@ -1,4 +1,5 @@
 import uuid
+import allure
 
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
@@ -110,126 +111,327 @@ class AdminPage(MainPage):
     # Пустой список элементов
     clear_list = "//td[contains (text(), 'No results!')]"
 
-
+    @allure.step("Авторизация в админ-панели")
     def authorization_admin(self, browser):
-        """Авторизация в админ-панели"""
-        self.wait_and_click(browser=browser, target_locator=self.button_login)
+        """Выполнение авторизации в административной панели с проверкой успешного входа"""
+        self.logger.info("Начало авторизации в админ-панели")
 
-        self.data_entry(browser = browser, target = self.input_username, value ="user")
+        with allure.step("1. Нажать на кнопку входа в систему"):
+            self.logger.info("Клик по кнопке входа в систему")
+            self.wait_and_click(browser=browser, target_locator=self.button_login)
 
-        self.data_entry(browser=browser, target=self.input_password, value="bitnami")
+        with allure.step("2. Ввести логин администратора"):
+            self.logger.info("Ввод логина администратора: user")
+            self.data_entry(browser=browser, target=self.input_username, value="user")
+            allure.attach(
+                "user",
+                name="Введенный логин",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        self.wait_and_click(browser=browser, target_locator=self.button_login)
+        with allure.step("3. Ввести пароль администратора"):
+            self.logger.info("Ввод пароля администратора")
+            self.data_entry(browser=browser, target=self.input_password, value="bitnami")
+            allure.attach(
+                "bitnami",
+                name="Введенный пароль",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        assert "Dashboard" in browser.title, "Не удалось войти в меню редакторования пользователей"
+        with allure.step("4. Подтвердить авторизацию"):
+            self.logger.info("Подтверждение авторизации")
+            self.wait_and_click(browser=browser, target_locator=self.button_login)
 
+        with allure.step("5. Проверить успешность авторизации"):
+            self.logger.info("Проверка успешности авторизации")
+            with allure.step("Убедиться, что заголовок содержит 'Dashboard'"):
+                assert "Dashboard" in browser.title, "Не удалось войти в админку"
+                self.logger.info("Авторизация прошла успешно")
+
+    @allure.step("Добавление нового клиента")
     def add_customers(self, browser):
+        """Добавление нового клиента в систему с генерацией тестовых данных"""
+        self.logger.info("Начало добавления нового клиента")
         id = str(uuid.uuid4())
         email = id + "@test.com"
         value = "Test"
-        self.wait_and_click(browser=browser, target_locator=self.dropdown_customers)
 
-        self.wait_and_click(browser=browser, target_locator=self.button_customers)
+        with allure.step("1. Открыть меню клиентов"):
+            self.logger.info("Открытие меню клиентов")
+            self.wait_and_click(browser=browser, target_locator=self.dropdown_customers)
+            self.wait_and_click(browser=browser, target_locator=self.button_customers)
+            self.wait_and_click(browser=browser, target_locator=self.button_add_new)
 
-        self.wait_and_click(browser=browser, target_locator=self.button_add_new)
+        with allure.step("2. Проверить переход на страницу клиентов"):
+            self.logger.info("Проверка перехода на страницу клиентов")
+            assert "Customers" in browser.title, "Не удалось войти в меню редактирования пользователей"
+            allure.attach(
+                browser.title,
+                name="Текущий заголовок страницы",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        assert "Customers" in browser.title, "Не удалось войти в админку"
+        with allure.step("3. Заполнить данные клиента"):
+            self.logger.info(f"Заполнение данных клиента: {value}")
+            self.data_entry(browser=browser, target=self.input_firstname, value=value)
+            self.data_entry(browser=browser, target=self.input_lastname, value=value)
+            self.data_entry(browser=browser, target=self.input_e_mail, value=email)
+            self.data_entry(browser=browser, target=self.input_password, value=value)
+            self.data_entry(browser=browser, target=self.input_confirm, value=value)
 
-        self.data_entry(browser=browser, target=self.input_firstname, value=value)
+            allure.attach(
+                f"Имя: {value}\nФамилия: {value}\nEmail: {email}\nПароль: {value}",
+                name="Введенные данные клиента",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        self.data_entry(browser=browser, target=self.input_lastname, value=value)
+        with allure.step("4. Сохранить клиента"):
+            self.logger.info("Сохранение клиента")
+            self.wait_and_click(browser=browser, target_locator=self.button_save)
+            self.wait_element(browser=browser, target_locator=self.header.alert_success)
 
-        self.data_entry(browser=browser, target=self.input_e_mail, value=email)
+        with allure.step("5. Вернуться к списку клиентов"):
+            self.logger.info("Возврат к списку клиентов")
+            self.wait_and_click(browser=browser, target_locator=self.button_back)
 
-        self.data_entry(browser=browser, target=self.input_password, value=value)
-
-        self.data_entry(browser=browser, target=self.input_confirm, value=value)
-
-        self.wait_and_click(browser=browser, target_locator=self.button_save)
-
-        self.wait_element(browser=browser, target_locator = self.header.alert_success)
-
-        self.wait_and_click(browser=browser, target_locator=self.button_back)
-
+        self.logger.info(f"Клиент успешно добавлен: {value}, {email}")
         return value, email
 
-
+    @allure.step("Проверка данных пользователя")
     def verifying_user_data(self, browser, firstname, lastname, email):
+        """Проверка корректности данных пользователя в системе"""
+        self.logger.info(f"Проверка данных пользователя: {firstname} {lastname}, {email}")
         full_name = f"{firstname} {lastname}"
 
-        self.data_entry(browser=browser, target=self.input_customer_name_filter, value=full_name)
-        self.data_entry(browser=browser, target=self.input_email_filter, value=email)
-        self.wait_and_click(browser=browser, target_locator=self.button_filter)
-        name = self.search_element(browser, element = self.customer_name)
-        name = name.replace("Enabled", "").strip()
-        mail = self.search_element(browser, element=self.customer_email)
-        assert full_name == name
-        assert email == mail
+        with allure.step(f"1. Заполнить фильтр для поиска пользователя {full_name}"):
+            self.logger.info(f"Заполнение фильтра для поиска: {full_name}, {email}")
+            self.data_entry(browser=browser, target=self.input_customer_name_filter, value=full_name)
+            self.data_entry(browser=browser, target=self.input_email_filter, value=email)
+            self.wait_and_click(browser=browser, target_locator=self.button_filter)
 
+            allure.attach(
+                f"Фильтр по имени: {full_name}\nФильтр по email: {email}",
+                name="Параметры поиска",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        with allure.step("2. Получить данные найденного пользователя"):
+            self.logger.info("Получение данных найденного пользователя")
+            name = self.search_element(browser, element=self.customer_name)
+            clean_name = name.replace("Enabled", "").strip()
+            mail = self.search_element(browser, element=self.customer_email)
+
+            allure.attach(
+                f"Найденное имя: {clean_name}\nНайденный email: {mail}",
+                name="Фактические данные пользователя",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        with allure.step("3. Проверить соответствие данных"):
+            self.logger.info("Проверка соответствия данных")
+            assert full_name == clean_name, f"Ожидалось имя: {full_name}, получено: {clean_name}"
+            assert email == mail, f"Ожидался email: {email}, получен: {mail}"
+            self.logger.info("Данные пользователя совпадают")
+
+            allure.attach(
+                "Все данные пользователя совпадают",
+                name="Результат проверки",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+    @allure.step("Добавление нового товара")
     def add_product(self, browser):
+        """Добавление нового тестового товара в каталог"""
+        self.logger.info("Начало добавления нового товара")
         id = str(uuid.uuid4())
         value = "Test" + id
-        self.wait_and_click(browser=browser, target_locator=self.dropdown_catalog)
 
-        self.wait_and_click(browser=browser, target_locator=self.button_product)
+        with allure.step("1. Открыть раздел каталога"):
+            self.logger.info("Открытие раздела каталога")
+            self.wait_and_click(browser=browser, target_locator=self.dropdown_catalog)
+            self.wait_and_click(browser=browser, target_locator=self.button_product)
+            self.wait_and_click(browser=browser, target_locator=self.button_add_new)
 
-        self.wait_and_click(browser=browser, target_locator=self.button_add_new)
+        with allure.step("2. Проверить переход на страницу товаров"):
+            self.logger.info("Проверка перехода на страницу товаров")
+            assert "Products" in browser.title, "Не удалось войти в меню редактирования товаров"
+            allure.attach(
+                browser.title,
+                name="Текущий заголовок страницы",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        assert "Products" in browser.title, "Не удалось войти в меню редакторования товаров"
+        with allure.step("3. Заполнить основные данные товара"):
+            self.logger.info(f"Заполнение основных данных товара: {value}")
+            self.data_entry(browser=browser, target=self.input_product_name, value=value)
+            self.data_entry(browser=browser, target=self.input_meta_tag_title, value=value)
+            allure.attach(
+                f"Название товара: {value}\nMeta-тег Title: {value}",
+                name="Основные данные товара",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        self.data_entry(browser=browser, target=self.input_product_name, value=value)
+        with allure.step("4. Заполнить данные в разделе Data"):
+            self.logger.info("Заполнение данных в разделе Data")
+            self.wait_and_click(browser=browser, target_locator=self.section_data)
+            self.data_entry(browser=browser, target=self.input_model, value=value)
+            allure.attach(
+                f"Модель товара: {value}",
+                name="Технические характеристики",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        self.data_entry(browser=browser, target=self.input_meta_tag_title, value=value)
+        with allure.step("5. Заполнить SEO-параметры"):
+            self.logger.info("Заполнение SEO-параметров")
+            self.wait_and_click(browser=browser, target_locator=self.section_seo)
+            self.data_entry(browser=browser, target=self.input_keyword, value=id)
+            allure.attach(
+                f"SEO Keyword: {id}",
+                name="SEO-настройки",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        self.wait_and_click(browser=browser, target_locator=self.section_data)
+        with allure.step("6. Сохранить товар"):
+            self.logger.info("Сохранение товара")
+            self.wait_and_click(browser=browser, target_locator=self.button_save)
+            self.wait_element(browser, target_locator=self.header.alert_success)
+            allure.attach(
+                "Товар успешно сохранен",
+                name="Результат сохранения",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        self.data_entry(browser=browser, target=self.input_model, value=value)
+        with allure.step("7. Вернуться к списку товаров"):
+            self.logger.info("Возврат к списку товаров")
+            self.wait_and_click(browser=browser, target_locator=self.button_back)
 
-        self.wait_and_click(browser=browser, target_locator=self.section_seo)
-
-        self.data_entry(browser=browser, target=self.input_keyword, value=id)
-
-        self.wait_and_click(browser=browser, target_locator=self.button_save)
-
-        self.wait_element(browser, target_locator = self.header.alert_success)
-
-        self.wait_and_click(browser=browser, target_locator=self.button_back)
-
+        self.logger.info(f"Товар успешно добавлен: {value}")
         return value
 
+    @allure.step("Проверка данных товара")
     def verifying_product_data(self, browser, value):
+        """Проверка корректности данных товара в системе"""
+        self.logger.info(f"Проверка данных товара: {value}")
 
-        self.data_entry(browser=browser, target=self.input_product_name_filter, value=value)
-        self.data_entry(browser=browser, target=self.input_model_filter, value=value)
-        self.wait_and_click(browser=browser, target_locator=self.button_filter)
-        name_product = self.search_element(browser, element=self.product_name)
-        name_product = name_product.replace("Enabled", "").strip()
-        model = self.search_element(browser, element=self.product_model)
-        assert value == name_product
-        assert value == model
+        with allure.step(f"1. Применить фильтр для поиска товара '{value}'"):
+            self.logger.info(f"Применение фильтра для поиска товара: {value}")
+            self.data_entry(browser=browser, target=self.input_product_name_filter, value=value)
+            self.data_entry(browser=browser, target=self.input_model_filter, value=value)
+            self.wait_and_click(browser=browser, target_locator=self.button_filter)
 
+            allure.attach(
+                f"Фильтр по названию: {value}\nФильтр по модели: {value}",
+                name="Параметры фильтрации",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        with allure.step("2. Получить фактические данные товара"):
+            self.logger.info("Получение фактических данных товара")
+            name_product = self.search_element(browser, element=self.product_name)
+            clean_name = name_product.replace("Enabled", "").strip()
+            model = self.search_element(browser, element=self.product_model)
+
+            allure.attach(
+                f"Найденное название: {clean_name}\nНайденная модель: {model}",
+                name="Фактические данные",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        with allure.step("3. Проверить соответствие данных"):
+            self.logger.info("Проверка соответствия данных товара")
+            assert value == clean_name, f"Ожидалось название: '{value}', получено: '{clean_name}'"
+            assert value == model, f"Ожидалась модель: '{value}', получено: '{model}'"
+            self.logger.info("Данные товара соответствуют ожидаемым")
+
+            allure.attach(
+                "Все данные товара соответствуют ожидаемым",
+                name="Результат проверки",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+    @allure.step("Удаление товара из системы")
     def delete_product(self, browser):
-        """Удаление продукта"""
-        self.wait_and_click(browser=browser, target_locator=self.checkbox)
-        self.wait_and_click(browser=browser, target_locator=self.button_delete)
-        alert = Alert(browser)
-        alert.accept()
-        self.search_element(browser, element=self.clear_list)
+        """Удаление товара с подтверждением операции"""
+        self.logger.info("Начало удаления товара")
 
+        with allure.step("1. Выбрать товар для удаления"):
+            self.logger.info("Выбор товара для удаления")
+            self.wait_and_click(browser=browser, target_locator=self.checkbox)
 
+        with allure.step("2. Нажать кнопку удаления"):
+            self.logger.info("Нажатие кнопки удаления")
+            self.wait_and_click(browser=browser, target_locator=self.button_delete)
+
+        with allure.step("3. Подтвердить удаление в диалоговом окне"):
+            self.logger.info("Подтверждение удаления")
+            alert = Alert(browser)
+            alert.accept()
+            allure.attach(
+                "Удаление подтверждено",
+                name="Подтверждение",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        with allure.step("4. Проверить очистку списка товаров"):
+            self.logger.info("Проверка очистки списка товаров")
+            self.search_element(browser, element=self.clear_list)
+            allure.attach(
+                "Список товаров очищен",
+                name="Результат удаления",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        self.logger.info("Товар успешно удален")
+
+    @allure.step("Проверка элементов на странице администрирования")
     def check_elements_admin_page(self, browser):
-        """Проверка элементовна на странице администрирования"""
-        self.wait_element(browser, target_locator=self.admin_login_card, method=By.CSS_SELECTOR)
-        self.wait_element(browser, target_locator=self.input_password)
-        self.wait_element(browser, target_locator=self.input_username)
-        self.wait_element(browser, target_locator=self.button_login)
-        self.wait_element(browser, target_locator=self.card_header, method=By.CSS_SELECTOR)
+        """Проверка наличия основных элементов на странице входа в админ-панель"""
+        self.logger.info("Проверка элементов на странице администрирования")
 
+        with allure.step("1. Проверить наличие карточки авторизации"):
+            self.logger.info("Проверка карточки авторизации")
+            self.wait_element(browser, target_locator=self.admin_login_card, method=By.CSS_SELECTOR)
+
+        with allure.step("2. Проверить поле ввода пароля"):
+            self.logger.info("Проверка поля ввода пароля")
+            self.wait_element(browser, target_locator=self.input_password)
+
+        with allure.step("3. Проверить поле ввода логина"):
+            self.logger.info("Проверка поля ввода логина")
+            self.wait_element(browser, target_locator=self.input_username)
+
+        with allure.step("4. Проверить кнопку входа"):
+            self.logger.info("Проверка кнопки входа")
+            self.wait_element(browser, target_locator=self.button_login)
+
+        with allure.step("5. Проверить заголовок карточки авторизации"):
+            self.logger.info("Проверка заголовка карточки авторизации")
+            self.wait_element(browser, target_locator=self.card_header, method=By.CSS_SELECTOR)
+
+        self.logger.info("Все элементы на странице администрирования присутствуют")
+
+    @allure.step("Выход из административной панели")
     def logout(self, browser):
-        """Выход из админки"""
-        self.wait_and_click(browser=browser, target_locator=self.button_logout, method=By.CSS_SELECTOR)
+        """Выполнение выхода из административной панели с проверкой успешного разлогина"""
+        self.logger.info("Начало выхода из административной панели")
 
-        self.wait_element(browser, target_locator =self.admin_login_card, method=By.CSS_SELECTOR)
+        with allure.step("1. Нажать кнопку выхода из системы"):
+            self.logger.info("Нажатие кнопки выхода из системы")
+            self.wait_and_click(browser=browser,
+                              target_locator=self.button_logout,
+                              method=By.CSS_SELECTOR)
 
-        assert "Administration" in browser.title, "Не удалось выйти из админки"
+        with allure.step("2. Проверить появление формы авторизации"):
+            self.logger.info("Проверка появления формы авторизации")
+            self.wait_element(browser,
+                            target_locator=self.admin_login_card,
+                            method=By.CSS_SELECTOR)
+
+        with allure.step("3. Проверить заголовок страницы"):
+            self.logger.info("Проверка заголовка страницы")
+            current_title = browser.title
+            assert "Administration" in current_title, \
+                f"Не удалось выйти из админки. Текущий заголовок: {current_title}"
+
+        self.logger.info("Выход из административной панели выполнен успешно")
 

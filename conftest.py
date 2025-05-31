@@ -1,4 +1,5 @@
 import pytest
+import allure
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FFoptions
 from selenium.webdriver.chrome.options import Options as CHoptions
@@ -40,3 +41,30 @@ def browser(request):
     driver.open()
 
     return driver
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+
+    # Делаем скриншот только при падении теста
+    if report.when == "call" and report.failed:
+        driver = item.funcargs.get("browser")
+        if driver is not None:
+            try:
+                # Добавляем скриншот в отчет
+                allure.attach(
+                    driver.get_screenshot_as_png(),
+                    name=f"screenshot_{item.name}",
+                    attachment_type=allure.attachment_type.PNG
+                )
+
+                # Дополнительно можно добавить исходный код страницы
+                allure.attach(
+                    driver.page_source,
+                    name="page_source",
+                    attachment_type=allure.attachment_type.HTML
+                )
+            except Exception as e:
+                print(f"Не удалось сделать скриншот: {e}")

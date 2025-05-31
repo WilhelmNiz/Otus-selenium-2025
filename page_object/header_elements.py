@@ -1,4 +1,5 @@
 import random
+import allure
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -43,6 +44,7 @@ class HeaderElements(BasePage):
 
     narbar_menu = "//nav[contains(@id, 'menu')]"
 
+    @allure.step("Изменение валюты на сайте")
     def change_currency(self, browser, new_currency=None):
         """
         Изменяет текущую валюту на сайте.
@@ -50,31 +52,50 @@ class HeaderElements(BasePage):
         :param new_currency: конкретная валюта для выбора (None - случайный выбор)
         :return selected_currency: новая валюта
         """
-        # Открываем dropdown с валютами
-        self.wait_and_click(browser=browser, target_locator=self.dropdown_currency, method=By.CSS_SELECTOR)
+        with allure.step("1. Открыть dropdown с валютами"):
+            self.wait_and_click(browser=browser,
+                                target_locator=self.dropdown_currency,
+                                method=By.CSS_SELECTOR)
 
-        # Получаем список доступных валют
-        currencies = WebDriverWait(browser, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.list_currency)))
+        with allure.step("2. Получить список доступных валют"):
+            currencies = WebDriverWait(browser, 10).until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.list_currency)))
+            available_currencies = [c.text.strip() for c in currencies]
+            allure.attach(
+                "\n".join(available_currencies),
+                name="Доступные валюты",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        # Определяем текущую валюту
-        current = self.wait_element(browser, target_locator=self.current_currency, method=By.CSS_SELECTOR)
-        current_currency = current.text.strip()
+        with allure.step("3. Определить текущую валюту"):
+            current = self.wait_element(browser,
+                                        target_locator=self.current_currency,
+                                        method=By.CSS_SELECTOR)
+            current_currency = current.text.strip()
+            allure.attach(
+                current_currency,
+                name="Текущая валюта",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        # Выбираем новую валюту
-        available_currencies = [c.text.strip() for c in currencies]
-        if new_currency:
-            selected_currency = new_currency
-        else:
-            selected_currency = random.choice([c for c in available_currencies if c != current_currency])
+        with allure.step(f"4. Выбрать {'указанную' if new_currency else 'случайную'} валюту"):
+            selected_currency = new_currency if new_currency else random.choice(
+                [c for c in available_currencies if c != current_currency]
+            )
+            allure.attach(
+                selected_currency,
+                name="Выбранная валюта",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-        for currency in currencies:
-            if currency.text.strip() == selected_currency:
-                currency.click()
-                break
+            for currency in currencies:
+                if currency.text.strip() == selected_currency:
+                    currency.click()
+                    break
 
         return selected_currency
 
+    @allure.step("Установка масштаба страницы")
     def set_page_zoom(self, browser, scale=0.6):
         """
         Устанавливает масштаб страницы.
@@ -86,5 +107,6 @@ class HeaderElements(BasePage):
             "document.body.style.transformOrigin='0 0'"
         )
 
+    @allure.step("Кликнуть на логотип")
     def click_logo(self, browser):
         self.wait_and_click(browser=browser, target_locator=self.logo)

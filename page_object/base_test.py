@@ -14,28 +14,23 @@ def _configure_logging():
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # Очищаем все существующие обработчики
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    # Файловый обработчик (перезаписываем файл только при первом запуске)
     file_handler = logging.FileHandler('page_objects.log', mode='w')
     file_handler.setFormatter(formatter)
     root_logger.addHandler(file_handler)
 
-    # Консольный обработчик
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
 
-# Вызываем настройку при импорте модуля
 _configure_logging()
 
 class BasePage:
     def __init__(self):
-        # Просто получаем логгер, настройка уже выполнена
-        self.logger = logging.getLogger(self.__class__.__module__ + "." + self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def wait_and_click(self, browser, target_locator, method=By.XPATH, timeout=10):
         """

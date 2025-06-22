@@ -2,8 +2,6 @@ import subprocess
 from collections import defaultdict
 from datetime import datetime
 
-from redis.cluster import command
-
 
 def main():
     try:
@@ -74,8 +72,8 @@ def main():
             f.write(report)
         print(f"Отчёт сохранён в файл: {filename}")
     except IOError as e:
-        raise IOError (f"Ошибка при сохранении отчёта: {e}")
+        raise IOError(f"Ошибка при сохранении отчёта: {e}")
+
 
 if __name__ == "__main__":
     main()
-

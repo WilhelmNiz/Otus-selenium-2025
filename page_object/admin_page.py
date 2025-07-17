@@ -3,6 +3,8 @@ import allure
 
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from page_object.main_page import MainPage
 
@@ -145,7 +147,7 @@ class AdminPage(MainPage):
         with allure.step("5. Проверить успешность авторизации"):
             self.logger.info("Проверка успешности авторизации")
             with allure.step("Убедиться, что заголовок содержит 'Dashboard'"):
-                assert "Dashboard" in browser.title, "Не удалось войти в админку"
+                WebDriverWait(browser, 10).until(EC.title_contains("Dashboard"))
                 self.logger.info("Авторизация прошла успешно")
 
     @allure.step("Добавление нового клиента")
@@ -327,9 +329,11 @@ class AdminPage(MainPage):
 
         with allure.step("2. Получить фактические данные товара"):
             self.logger.info("Получение фактических данных товара")
-            name_product = self.search_element(browser, element=self.PRODUCT_NAME)
+            name_product = self.wait_element(browser, target_locator=self.PRODUCT_NAME)
+            name_product = name_product.text
             clean_name = name_product.replace("Enabled", "").strip()
-            model = self.search_element(browser, element=self.PRODUCT_MODEL)
+            model = self.wait_element(browser, target_locator=self.PRODUCT_MODEL)
+            model = model.text
 
             allure.attach(
                 f"Найденное название: {clean_name}\nНайденная модель: {model}",

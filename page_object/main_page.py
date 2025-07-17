@@ -27,8 +27,7 @@ class MainPage(BasePage):
 
         with allure.step("1. Получить список всех товаров на странице"):
             self.logger.info("Получение списка всех товаров")
-            all_products = WebDriverWait(browser, 10).until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.ALL_PRODUCT_NAME)))
+            all_products = self.wait_elements(browser, target_locator=self.ALL_PRODUCT_NAME,method=By.CSS_SELECTOR)
 
             self.logger.info(f"Найдено товаров: {len(all_products)}")
             allure.attach(
@@ -38,7 +37,22 @@ class MainPage(BasePage):
             )
 
             with allure.step("2. Выбрать случайный товар"):
-                random_product = random.choice(all_products)
+                filtered_products = []
+                for product in all_products:
+                    product_name = product.find_element(By.CSS_SELECTOR, self.TITLE_PRODUCT_NAME).text
+                    if product_name not in ['Apple Cinema 30"', 'Canon EOS 5D']:
+                        filtered_products.append(product)
+
+                if not filtered_products:
+                    raise Exception("Не найдено подходящих товаров для добавления в корзину")
+
+                self.logger.info(f"Доступно товаров после фильтрации: {len(filtered_products)}")
+                allure.attach(
+                    str(len(filtered_products)),
+                    name="Количество товаров после фильтрации",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                random_product = random.choice(filtered_products)
                 product_name = random_product.find_element(By.CSS_SELECTOR, self.TITLE_PRODUCT_NAME).text
                 self.logger.info(f"Выбран товар: {product_name}")
                 allure.attach(
@@ -49,11 +63,11 @@ class MainPage(BasePage):
 
             with allure.step("3. Нажать кнопку 'Добавить в корзину'"):
                 self.logger.info("Нажатие кнопки 'Добавить в корзину'")
-                self.wait_and_click(browser=browser, target_locator=self.BUTTON_ADD_TO_CART, method=By.CSS_SELECTOR)
+                self.wait_and_click(browser=random_product, target_locator=self.BUTTON_ADD_TO_CART, method=By.CSS_SELECTOR)
 
             with allure.step("4. Проверить уведомление об успешном добавлении"):
                 self.logger.info("Проверка уведомления об успешном добавлении")
-                self.wait_element(browser, target_locator=self.header.ALERT_SUCCESS)
+                self.wait_element(browser=random_product, target_locator=self.header.ALERT_SUCCESS)
 
             with allure.step("5. Перейти в корзину"):
                 self.logger.info("Переход в корзину")
@@ -69,8 +83,7 @@ class MainPage(BasePage):
 
         with allure.step(f"1. Проверить что корзина не пуста (ожидаемый товар: '{product_name}')"):
             self.logger.info("Проверка что корзина не пуста")
-            items_in_cart = browser.find_elements(By.CSS_SELECTOR, self.header.CART_ITEMS_LIST)
-
+            items_in_cart = self.wait_elements(browser, target_locator=self.header.CART_ITEMS_LIST,method=By.CSS_SELECTOR)
             self.logger.info(f"Количество товаров в корзине: {len(items_in_cart)}")
             allure.attach(
                 str(len(items_in_cart)),

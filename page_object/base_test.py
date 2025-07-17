@@ -95,3 +95,24 @@ class BasePage:
             self.logger.error(f"Ошибка при поиске элемента {element}: {str(e)}")
             raise
 
+
+    def wait_elements(self, browser, target_locator, method=By.XPATH, timeout=10):
+        """
+        Ожидает появление элементов и возвращает список
+
+        :param browser: WebDriver instance
+        :param target_locator: str - локатор элементов
+        :param method: By - метод поиска
+        :param timeout: int - время ожидания
+        :return: list[WebElement] - список найденных элементов
+        """
+        self.logger.info(f"Ожидание элементов: {target_locator} (метод: {method})")
+        try:
+            elements = WebDriverWait(browser, timeout).until(
+                EC.presence_of_all_elements_located((method, target_locator)))
+            self.logger.info(f"Найдено {len(elements)} элементов по локатору {target_locator}")
+            return elements
+        except Exception as e:
+            self.logger.error(f"Элементы {target_locator} не найдены: {str(e)}")
+            raise
+

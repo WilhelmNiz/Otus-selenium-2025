@@ -25,7 +25,6 @@ def pytest_addoption(parser):
 
 @pytest.fixture()
 def browser(request):
-    driver = None
     browser_name = request.config.getoption("--browser")
     headless = request.config.getoption("--headless")
     url = request.config.getoption("--url")

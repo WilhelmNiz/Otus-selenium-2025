@@ -5,12 +5,10 @@ services:
     image: aerokube/selenoid:1.11.3
     container_name: selenoid1
     hostname: selenoid1
-    environment:
-      - DOCKER_API_VERSION=1.40
     networks:
       - selenoid_net
-    ports:
-      - "4445:4444"
+    environment:
+      - DOCKER_API_VERSION=1.47
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config/browsers.json:/etc/selenoid/browsers.json:ro
@@ -20,12 +18,10 @@ services:
     image: aerokube/selenoid:1.11.3
     container_name: selenoid2
     hostname: selenoid2
-    environment:
-      - DOCKER_API_VERSION=1.40
     networks:
       - selenoid_net
-    ports:
-      - "4446:4444"
+    environment:
+      - DOCKER_API_VERSION=1.47
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config/browsers.json:/etc/selenoid/browsers.json:ro
@@ -41,8 +37,6 @@ services:
     command: -guests-allowed -guests-quota "test" -verbose -quotaDir /etc/grid-router/quota
     networks:
       - selenoid_net
-    ports:
-      - "4444:4444"
 
   ggr_ui:
     image: aerokube/ggr-ui:1.2.0
@@ -53,10 +47,6 @@ services:
       - ./config/grid-router/quota:/etc/grid-router/quota:ro
     networks:
       - selenoid_net
-    ports:
-      - "8888:8888"
-    environment:
-      - GGR_URL=http://ggr:4444
 
   selenoid-ui:
     image: aerokube/selenoid-ui:1.10.11
@@ -65,8 +55,6 @@ services:
     depends_on: [ggr_ui]
     networks:
       - selenoid_net
-    ports:
-      - "8080:8080"
     command: --selenoid-uri http://ggr_ui:8888
 
   nginx:
@@ -75,7 +63,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     container_name: nginx
     networks:
       - selenoid_net

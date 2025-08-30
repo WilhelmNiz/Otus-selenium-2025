@@ -26,4 +26,4 @@ export MOZ_HEADLESS_HEIGHT=1080
 
 
 # Запуск тестов с дополнительными флагами для стабильности
-exec python -m pytest "$@" --reruns 3 --reruns-delay 3
+exec "$@"

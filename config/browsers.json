@@ -1,16 +1,18 @@
 {
     "chrome": {
-        "default": "128",
+        "default": "128.0",
         "versions": {
             "128.0": {
                 "image": "selenoid/chrome:128.0",
                 "port": "4444",
-                "path": "/"
+                "path": "/",
+                "dockerPull": true
             },
             "127.0": {
                 "image": "selenoid/chrome:127.0",
                 "port": "4444",
-                "path": "/"
+                "path": "/",
+                "dockerPull": true
             }
         }
     }

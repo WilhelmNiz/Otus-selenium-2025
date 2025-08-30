@@ -16,7 +16,7 @@ def pytest_addoption(parser):
     parser.addoption("--enable_vnc", action="store_true", help="Enable VNC for remote sessions")
     parser.addoption("--enable_video", action="store_true", help="Enable video recording for remote sessions")
     parser.addoption("--browser_version", help="Browser version for remote sessions", default="128.0")
-    parser.addoption("--db_host", help="Database host", default="localhost")
+    parser.addoption("--db_host", help="Database host", default="172.20.150.187")
     parser.addoption("--db_port", help="Database port", type=int, default=3306)
     parser.addoption("--db_user", help="Database user", default="bn_opencart")
     parser.addoption("--db_password", help="Database password", default="")

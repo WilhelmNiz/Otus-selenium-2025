@@ -18,7 +18,6 @@ pipeline {
 
     environment {
         PYTHON_VERSION = '3.12'
-        ALLURE_PATH = tool name: 'allure', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
     }
 
     stages {
@@ -42,15 +41,21 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    def pytestCmd = ". venv/bin/activate && python -m pytest ./tests/" // Укажи правильный путь к tests/
+                    def pytestCmd = ". venv/bin/activate && python -m pytest ./tests/"
 
                     pytestCmd += " --browser ${params.BROWSER}"
                     pytestCmd += " --url ${params.OPENCART_URL}"
                     pytestCmd += " --browser_version ${params.BROWSER_VERSION}"
                     pytestCmd += " --db_host ${params.DB_HOST}"
                     pytestCmd += " --db_user ${params.DB_USER}"
-                    pytestCmd += " --db_password ${params.DB_PASSWORD}"
-                    pytestCmd += " -n ${params.THREADS}" //
+
+                    if (params.DB_PASSWORD.trim()) {
+                        pytestCmd += " --db_password '${params.DB_PASSWORD}'"
+                    } else {
+                        pytestCmd += " --db_password ''"
+                    }
+
+                    pytestCmd += " -n ${params.THREADS}"
 
                     if (params.HEADLESS.toBoolean()) {
                         pytestCmd += " --headless"
@@ -66,18 +71,31 @@ pipeline {
                         pytestCmd += " --enable_video"
                     }
 
+                    // Allure результаты
                     pytestCmd += " --alluredir=${env.WORKSPACE}/allure-results"
 
+                    echo "Запускаем команду: ${pytestCmd}"
                     sh pytestCmd
                 }
             }
+
             post {
                 always {
                     allure includeProperties: false,
                         jdk: '',
-                        results: [[path: 'allure-results']]
+                        results: [[path: 'allure-results']],
+                        reportBuildPolicy: 'ALWAYS'
 
-                    archiveArtifacts artifacts: '**/allure-results/**/*', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    sh 'rm -rf venv || true'
+                    echo "Очистка завершена"
                 }
             }
         }
@@ -85,7 +103,7 @@ pipeline {
 
     post {
         always {
-            sh 'rm -rf venv || true'
+            echo "Сборка завершена: ${currentBuild.result}"
         }
         success {
             echo "Тесты прошли успешно! Отчет Allure доступен."
@@ -94,7 +112,7 @@ pipeline {
             echo "В тестах найдены неудачи."
         }
         unstable {
-            echo "Сборка помечена как нестабильная (например, из-за пропущенных тестов)."
+            echo "Сборка помечена как нестабильная."
         }
     }
 }

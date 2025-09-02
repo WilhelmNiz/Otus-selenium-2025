@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     x11-utils \
     libgl1-mesa-dri \
-    libgl1-mesa-glx \
+    libglx-mesa0 \
     libgbm1 \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*

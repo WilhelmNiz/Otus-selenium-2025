@@ -55,7 +55,7 @@ pipeline {
                         pytestCmd += " --db_password ''"
                     }
 
-                    pytestCmd += " -n ${params.THREADS}"
+                    // pytestCmd += " -n ${params.THREADS}"
 
                     if (params.HEADLESS.toBoolean()) {
                         pytestCmd += " --headless"

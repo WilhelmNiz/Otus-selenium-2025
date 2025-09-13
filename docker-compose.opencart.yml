@@ -14,7 +14,7 @@ services:
       - selenoid_net
 
   mariadb:
-    image: docker.io/bitnami/mariadb:11.2
+    image: docker.io/bitnamilegacy/mariadb:11.2
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - MARIADB_USER=bn_opencart

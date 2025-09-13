@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'SELENOID_URL', defaultValue: 'http://localhost:4444/wd/hub', description: 'Адрес Selenoid хаба')
-        string(name: 'OPENCART_URL', defaultValue: 'http://172.20.150.187:8081/', description: 'Адрес приложения OpenCart')
-        choice(name: 'BROWSER', choices: ['chrome', 'firefox'], description: 'Браузер для запуска тестов')
+        string(name: 'SELENOID_URL', defaultValue: 'http://ggr:4444/wd/hub', description: 'Адрес Selenoid хаба')
+        string(name: 'OPENCART_URL', defaultValue: 'http://192.168.31.202:8081/', description: 'Адрес приложения OpenCart')
+        choice(name: 'BROWSER', choices: ['chrome'], description: 'Браузер для запуска тестов')
         string(name: 'BROWSER_VERSION', defaultValue: '128.0', description: 'Версия браузера')
         string(name: 'THREADS', defaultValue: '1', description: 'Количество потоков (workers) для pytest')
         booleanParam(name: 'HEADLESS', defaultValue: false, description: 'Запуск в headless-режиме')
@@ -28,12 +28,22 @@ pipeline {
             }
         }
 
+        stage('Clean Allure Results') {
+            steps {
+                script {
+                    sh 'rm -rf allure-results || true'
+                    sh 'mkdir -p allure-results'
+                }
+            }
+        }
+
         stage('Setup Python') {
             steps {
                 script {
                      sh "python3 -m venv venv"
                      sh ". venv/bin/activate && pip install --upgrade pip"
                      sh ". venv/bin/activate && pip install -r requirements.txt"
+                     sh ". venv/bin/activate && pip install pytest-xdist"
                 }
             }
         }
@@ -55,7 +65,7 @@ pipeline {
                         pytestCmd += " --db_password ''"
                     }
 
-                    // pytestCmd += " -n ${params.THREADS}"
+                    pytestCmd += " -n ${params.THREADS}"
 
                     if (params.HEADLESS.toBoolean()) {
                         pytestCmd += " --headless"
@@ -71,7 +81,6 @@ pipeline {
                         pytestCmd += " --enable_video"
                     }
 
-                    // Allure результаты
                     pytestCmd += " --alluredir=${env.WORKSPACE}/allure-results"
 
                     echo "Запускаем команду: ${pytestCmd}"
@@ -86,7 +95,12 @@ pipeline {
                         results: [[path: 'allure-results']],
                         reportBuildPolicy: 'ALWAYS'
 
-                    archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: true
+                    script {
+                        def resultsExist = fileExists('allure-results')
+                        if (resultsExist) {
+                            archiveArtifacts artifacts: 'allure-results/**/*', allowEmptyArchive: false
+                        }
+                    }
                 }
             }
         }

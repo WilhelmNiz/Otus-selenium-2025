@@ -11,7 +11,7 @@ pipeline {
         booleanParam(name: 'REMOTE', defaultValue: true, description: 'Использовать удаленный Selenoid')
         booleanParam(name: 'ENABLE_VNC', defaultValue: false, description: 'Включить VNC')
         booleanParam(name: 'ENABLE_VIDEO', defaultValue: false, description: 'Включить запись видео')
-        string(name: 'DB_HOST', defaultValue: '172.20.150.187', description: 'Хост БД')
+        string(name: 'DB_HOST', defaultValue: '192.168.31.202', description: 'Хост БД')
         string(name: 'DB_USER', defaultValue: 'bn_opencart', description: 'Пользователь БД')
         string(name: 'DB_PASSWORD', defaultValue: '', description: 'Пароль БД')
     }
